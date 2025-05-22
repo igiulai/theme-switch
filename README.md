@@ -1,27 +1,130 @@
-# vite-template-redux
+# Redux Toolkit Theme Switcher
 
-Uses [Vite](https://vitejs.dev/), [Vitest](https://vitest.dev/), and [React Testing Library](https://github.com/testing-library/react-testing-library) to create a modern [React](https://react.dev/) app compatible with [Create React App](https://create-react-app.dev/)
+## Цель работы
+Освоение навыков управления состоянием приложения с использованием Redux Toolkit на примере реализации переключения тем.
 
-```sh
+## Описание проекта
+Демонстрационное приложение с функционалом счетчика и возможностью переключения цветовой темы. Проект создан на основе шаблона Redux для Vite.
+
+## Функционал
+- Счетчик с базовыми операциями (инкремент, декремент)
+- Асинхронные операции с счетчиком
+- Переключение цветовой темы приложения
+- Отображение случайных цитат
+
+## Установка и запуск
+
+1. Создайте проект из шаблона:
+```bash
 npx degit reduxjs/redux-templates/packages/vite-template-redux my-app
+cd my-app
 ```
 
-## Goals
+2. Установите зависимости:
+```bash
+npm install
+```
 
-- Easy migration from Create React App or Vite
-- As beginner friendly as Create React App
-- Optimized performance compared to Create React App
-- Customizable without ejecting
+3. Запустите приложение:
+```bash
+npm run dev
+```
 
-## Scripts
+## Структура проекта
 
-- `dev`/`start` - start dev server and open browser
-- `build` - build for production
-- `preview` - locally preview production build
-- `test` - launch test runner
+### Redux-логика
+- `features/counter` - логика работы счетчика
+- `features/theme` - логика переключения тем (новый модуль)
+- `features/quotes` - логика работы с цитатами
+- `app/store.ts` - хранилище состояния
 
-## Inspiration
+### Компоненты
+- `Counter` - компонент счетчика
+- `ThemeSwitch` - компонент переключения темы
+- `Quotes` - компонент отображения цитат
 
-- [Create React App](https://github.com/facebook/create-react-app/tree/main/packages/cra-template)
-- [Vite](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react)
-- [Vitest](https://github.com/vitest-dev/vitest/tree/main/examples/react-testing-lib)
+## Реализация переключения тем
+
+### 1. Создание slice для темы
+```typescript
+// features/theme/themeSlice.ts
+import { createSlice } from '@reduxjs/toolkit';
+
+interface ThemeState {
+  color: string;
+}
+
+const initialState: ThemeState = {
+  color: '#282c34', // цвет по умолчанию
+};
+
+const themeSlice = createSlice({
+  name: 'theme',
+  initialState,
+  reducers: {
+    changeTheme: (state, action) => {
+      state.color = action.payload;
+    },
+  },
+});
+
+export const { changeTheme } = themeSlice.actions;
+export default themeSlice.reducer;
+```
+
+### 2. Добавление в хранилище
+```typescript
+// app/store.ts
+import themeReducer from '../features/theme/themeSlice';
+
+export const store = configureStore({
+  reducer: {
+    counter: counterReducer,
+    quotes: quotesReducer,
+    theme: themeReducer,
+  },
+});
+```
+
+### 3. Компонент переключателя темы
+```typescript
+// features/theme/ThemeSwitch.tsx
+import { useDispatch } from 'react-redux';
+import { changeTheme } from './themeSlice';
+
+const ThemeSwitch = () => {
+  const dispatch = useDispatch();
+  const themes = ['#282c34', '#61dafb', '#ff0000', '#00ff00'];
+
+  return (
+    <div>
+      {themes.map((color) => (
+        <button 
+          key={color}
+          onClick={() => dispatch(changeTheme(color))}
+          style={{ backgroundColor: color }}
+        />
+      ))}
+    </div>
+  );
+};
+```
+
+### 4. Применение темы в App
+```typescript
+// App.tsx
+const themeColor = useSelector((state: RootState) => state.theme.color);
+
+return (
+  <div className="App" style={{ backgroundColor: themeColor }}>
+    {/* ... */}
+    <ThemeSwitch />
+  </div>
+);
+```
+
+## Тестирование
+Запустите тесты для проверки функционала:
+```bash
+npm test
+```
